@@ -17,8 +17,18 @@ import { KudumbamMessenger } from './components/KudumbamMessenger';
 import { AchanDaemonModal } from './components/AchanDaemonModal';
 import { HouseholdClock, TIME_SLOTS } from './components/HouseholdClock';
 import { PCStartup } from './components/PCStartup';
+import { DesktopToast } from './components/DesktopToast';
 import { sounds } from './utils/sound';
 import { DAEMON_INTERRUPTS, determineAmmaState, generateLocalResponse } from './utils/localEngine';
+import {
+  calculateNextChaosInterval,
+  pickNextChaosEventType,
+  generateDynamicDaemonInterrupt,
+  generateSpontaneousAmmaBark,
+  generateAcousticToast,
+  generateAchanSitoutEvent,
+  AcousticToastData
+} from './utils/chaosEngine';
 import { getDesktopBackground, getDesktopStyle, DitherPatternType } from './utils/desktopTheme';
 import { AmmaOperatingState, DaemonInterrupt, DaemonType, TerminalEntry, HouseholdTimeSlot } from './types';
 import { Terminal, Activity, Package, Radio, CloudRain, Zap, Coffee, HelpCircle, BookOpen, Monitor, MessageSquare, ShieldCheck, Power } from 'lucide-react';
@@ -35,6 +45,7 @@ export default function App() {
   const [clockTime, setClockTime] = useState<string>('16:05');
   const [householdSlot, setHouseholdSlot] = useState<HouseholdTimeSlot>('NAALU_MANI');
   const [activeInterrupt, setActiveInterrupt] = useState<DaemonInterrupt | null>(null);
+  const [activeToast, setActiveToast] = useState<AcousticToastData | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [crtFilter, setCrtFilter] = useState<boolean>(true);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
@@ -128,20 +139,109 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
-  // Periodic Auto-Triggering Daemon (Background System Chaos Daemon)
+  // Organic Background Household Chaos Engine (Dynamic, Unpredictable & Non-Scripted)
   useEffect(() => {
     if (!autoTriggerEnabled || isBooting) return;
 
-    // Trigger random daemon every 55-80 seconds when no active modal is open
-    const delay = Math.floor(Math.random() * 25000) + 55000;
+    // Dynamically calculate the next delay using Poisson-style stochastic intervals
+    // (Interval scales with current Amma stress and includes micro-burst chances)
+    const nextInterval = calculateNextChaosInterval(stress);
+
     const daemonTimer = setTimeout(() => {
-      if (!activeInterrupt && stress < 90) {
-        triggerRandomDaemon();
+      if (stress >= 98) return;
+
+      const eventType = pickNextChaosEventType(Boolean(activeInterrupt));
+
+      if (eventType === 'INTERRUPT_MODAL' && !activeInterrupt) {
+        // 1. Procedural interactive Daemon Interrupt Modal (unique scenarios every time)
+        triggerDaemonInterrupt();
+      } else if (eventType === 'SPONTANEOUS_AMMA_BARK') {
+        // 2. Spontaneous maternal observation directly in the terminal
+        const bark = generateSpontaneousAmmaBark(stress);
+        if (bark.soundType === 'tongue') sounds.playTongueClick();
+        else if (bark.soundType === 'inverter') sounds.playInverterBeep();
+        else sounds.playErrorChord();
+
+        const updatedStress = Math.min(100, Math.max(10, stress + bark.stressDelta));
+        setStress(updatedStress);
+        setState(determineAmmaState(updatedStress));
+
+        const entry: TerminalEntry = {
+          id: `spontaneous_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          stress: updatedStress,
+          stressDelta: bark.stressDelta,
+          state: determineAmmaState(updatedStress),
+          ammaDialogue: bark.dialogue,
+          englishTranslation: bark.englishTranslation,
+          systemLogs: [
+            '[SPONTANEOUS_MATERNAL_EVENT] Amma vocalized unprompted directive.',
+            ...bark.systemLogs
+          ],
+          suggestedCommands: bark.suggestedCommands
+        };
+        setEntries(prev => [...prev, entry]);
+      } else if (eventType === 'ACOUSTIC_TOAST') {
+        // 3. Desktop acoustic alert with toast notification and sound
+        const toast = generateAcousticToast();
+        if (toast.soundType === 'cooker') sounds.playPressureCooker();
+        else if (toast.soundType === 'gate') sounds.playGateCreak();
+        else if (toast.soundType === 'thunder') sounds.playThunder();
+        else if (toast.soundType === 'inverter') sounds.playInverterBeep();
+        else sounds.playTongueClick();
+
+        setActiveToast(toast);
+        const updatedStress = Math.min(100, stress + toast.stressDelta);
+        setStress(updatedStress);
+        setState(determineAmmaState(updatedStress));
+
+        const entry: TerminalEntry = {
+          id: `toast_event_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          stress: updatedStress,
+          stressDelta: toast.stressDelta,
+          state: determineAmmaState(updatedStress),
+          ammaDialogue: `Ketto aa shabdham?! (${toast.title}) Ivide oru nimisham samadhanam tharilla aarum!`,
+          englishTranslation: `Did you hear that sound?! (${toast.title}) Nobody allows a single minute of peace in this house!`,
+          systemLogs: [
+            toast.systemLog,
+            `ACOUSTIC_TRIANGULATION: ${toast.subtitle}`
+          ],
+          suggestedCommands: ['clean --room --fast', 'tea --brew', 'phone --hide']
+        };
+        setEntries(prev => [...prev, entry]);
+      } else if (eventType === 'ACHAN_SITOUT_COMMENT') {
+        // 4. Paternal Sitout critique from Achan
+        const achan = generateAchanSitoutEvent();
+        sounds.playErrorChord();
+
+        const updatedStress = Math.min(100, stress + achan.stressDelta);
+        setStress(updatedStress);
+        setState(determineAmmaState(updatedStress));
+
+        const entry: TerminalEntry = {
+          id: `achan_sitout_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          stress: updatedStress,
+          stressDelta: achan.stressDelta,
+          state: determineAmmaState(updatedStress),
+          ammaDialogue: achan.ammaResponse,
+          englishTranslation: achan.ammaEnglish,
+          systemLogs: [
+            `[SITOUT_MICROPHONE] ${achan.achanQuote}`,
+            ...achan.systemLogs
+          ],
+          suggestedCommands: achan.suggestedCommands
+        };
+        setEntries(prev => [...prev, entry]);
       }
-    }, delay);
+    }, nextInterval);
 
     return () => clearTimeout(daemonTimer);
-  }, [autoTriggerEnabled, isBooting, activeInterrupt, stress]);
+  }, [autoTriggerEnabled, isBooting, activeInterrupt, stress, clockTime]);
 
   // Sync sounds manager
   const handleToggleSound = () => {
@@ -168,6 +268,491 @@ export default function App() {
     const currentInterrupt = activeInterrupt;
     if (activeInterrupt) {
       setActiveInterrupt(null);
+    }
+
+    // Handle manual "trigger" commands from terminal
+    if (normalized.startsWith('trigger') || normalized.startsWith('trig')) {
+      // 1. Help or List
+      if (normalized === 'trigger' || normalized === 'trigger --help' || normalized === 'trigger help' || normalized === 'trigger list' || normalized === 'trig') {
+        const entry: TerminalEntry = {
+          id: `trigger_help_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          command: cmd,
+          stress,
+          stressDelta: 0,
+          state,
+          ammaDialogue: "Trigger-o? Enthu trigger cheyyaneda ee nokkunne? Veettil oru aapathu varaan nee terminal-il ninnu trigger cheyyanamo? Ninte achan ariyathe ivide oru puzhukkum nadakkilla!",
+          englishTranslation: "Triggering what? Do we need you to manually trigger household catastrophes from a terminal? Nothing moves in this house without your father finding out!",
+          systemLogs: [
+            "=== THARAVADU_OS DAEMON TRIGGER MANUAL ===",
+            "  trigger mazha           -> Summon MAZHA.EXE (Rain & terrace laundry emergency, +25% stress)",
+            "  trigger kseb            -> Summon KSEB_TRIP (Power cut & screaming inverter, +20% stress)",
+            "  trigger guest           -> Summon GUEST_RADAR (Sukumaran Ammavan on Bajaj Chetak, +30% stress)",
+            "  trigger tupperware      -> Summon TUPPERWARE_INTEGRITY (Missing 2004 Dubai bottle, +35% stress)",
+            "  trigger chaya           -> Summon CHAYA_PIPELINE (4:00 PM Tea & snacks deadline, +10% stress)",
+            "  trigger random          -> Summon a random household crisis daemon",
+            "  trigger stress <val>    -> Calibrate Amma stress (e.g. 'trigger stress 85', 'trigger stress +25')",
+            "  trigger bsod            -> Trigger instant 100% Martyr Mode crash screen",
+            "  trigger calm            -> Reset stress to 20% with fresh cardamom tea",
+            "  trigger achan           -> Summon Achan Paternal Diplomatic Firewall",
+            "  trigger saree           -> Launch Saree Rescue rooftop minigame",
+            "  trigger kudumbam        -> Open Kudumbam WhatsApp Messenger",
+            "  trigger cooker          -> Kitchen acoustic: 3 whistles from Prestige pressure cooker",
+            "  trigger mixie           -> Kitchen acoustic: Preethi 750W mixie high-speed grind",
+            "  trigger gate            -> Peripheral acoustic: Squeaky iron front gate alert"
+          ],
+          suggestedCommands: ['trigger mazha', 'trigger kseb', 'trigger stress +30']
+        };
+        setEntries(prev => [...prev, entry]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // 2. Daemon Interrupts
+      if (normalized.includes('mazha') || normalized.includes('rain')) {
+        triggerDaemonInterrupt('MAZHA.EXE');
+        sounds.playThunder();
+        const entry: TerminalEntry = {
+          id: `trigger_mazha_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          command: cmd,
+          stress: Math.min(100, stress + 25),
+          stressDelta: 25,
+          state: determineAmmaState(Math.min(100, stress + 25)),
+          ammaDialogue: "Mazha kaaruthu! Kooriruttu on eastern sky! Kalyana pattu-saree terrace-il aanu! Odi poyi thuni edukkeda!",
+          englishTranslation: "Dark clouds overhead! Pitch blackness in the eastern sky! My wedding silk saree is drying on the terrace! Run up and bring the laundry in!",
+          systemLogs: [
+            "[TRIGGER_CLI] Intercepted manual daemon invocation: MAZHA.EXE",
+            "RADAR: Monsoon rain clouds detected over Tharavadu roof.",
+            "URGENCY: CRITICAL (25 second countdown active).",
+            "RECOMMENDED_ACTION: thuni --fetch"
+          ],
+          suggestedCommands: ['thuni --fetch', 'rain --ignore', 'saree']
+        };
+        setEntries(prev => [...prev, entry]);
+        setIsProcessing(false);
+        return;
+      }
+
+      if (normalized.includes('kseb') || normalized.includes('power') || normalized.includes('fuse')) {
+        triggerDaemonInterrupt('KSEB_TRIP');
+        sounds.playInverterBeep();
+        const entry: TerminalEntry = {
+          id: `trigger_kseb_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          command: cmd,
+          stress: Math.min(100, stress + 20),
+          stressDelta: 20,
+          state: determineAmmaState(Math.min(100, stress + 20)),
+          ammaDialogue: "Current poyi! Inverter scream cheyyunnu! Ninte aa chintha-shakthi illatha phone charger aanu kaaranam! Feeder trip aayi!",
+          englishTranslation: "Power went out! Inverter is screaming! It's because you plugged in your mindless phone charger! The entire feeder tripped!",
+          systemLogs: [
+            "[TRIGGER_CLI] Intercepted manual daemon invocation: KSEB_TRIP",
+            "HARDWARE_ALERT: 0V line drop on main board.",
+            "INVERTER_LOAD: Screaming at 85dB.",
+            "RECOMMENDED_ACTION: kseb --fuse-check"
+          ],
+          suggestedCommands: ['kseb --fuse-check', 'phone --unplug', 'study --psc']
+        };
+        setEntries(prev => [...prev, entry]);
+        setIsProcessing(false);
+        return;
+      }
+
+      if (normalized.includes('guest') || normalized.includes('radar') || normalized.includes('sukumaran')) {
+        triggerDaemonInterrupt('GUEST_RADAR');
+        sounds.playGateCreak();
+        const entry: TerminalEntry = {
+          id: `trigger_guest_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          command: cmd,
+          stress: Math.min(100, stress + 30),
+          stressDelta: 30,
+          state: determineAmmaState(Math.min(100, stress + 30)),
+          ammaDialogue: "Ayyoo Sukumaran Ammavan vannallo! Chekkan ivide lungi uduthu phone-il nokki irikkunnu! Odi poyi nalla shirt ittu sit-out-il nillada!",
+          englishTranslation: "Oh no Sukumaran Uncle has arrived! You're sitting around in a lungi staring at your screen! Run and put on a nice shirt and greet him at the veranda!",
+          systemLogs: [
+            "[TRIGGER_CLI] Intercepted manual daemon invocation: GUEST_RADAR",
+            "PERIPHERAL_ALERT: Bajaj Chetak 150cc scooter acoustic signature confirmed.",
+            "INTRUDER: Sukumaran Ammavan (Inquisitive relative).",
+            "RECOMMENDED_ACTION: sitout --greet --tea"
+          ],
+          suggestedCommands: ['sitout --greet --tea', 'biscuit --goodday', 'bedroom --lock --hide']
+        };
+        setEntries(prev => [...prev, entry]);
+        setIsProcessing(false);
+        return;
+      }
+
+      if (normalized.includes('tupperware') || normalized.includes('milton') || normalized.includes('bottle')) {
+        triggerDaemonInterrupt('TUPPERWARE_INTEGRITY');
+        sounds.playErrorChord();
+        const entry: TerminalEntry = {
+          id: `trigger_tupp_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          command: cmd,
+          stress: Math.min(100, stress + 35),
+          stressDelta: 35,
+          state: determineAmmaState(Math.min(100, stress + 35)),
+          ammaDialogue: "Ente manja Tupperware bottle evide?! Ninte achan 15 kollam munpe Gulf-il ninnu vangi thannathaanu! Athu Shaji-kk kondu kodutho?!",
+          englishTranslation: "Where is my yellow Tupperware bottle?! Your father brought it from the Gulf 15 years ago! Did you lend it away to Shaji?!",
+          systemLogs: [
+            "[TRIGGER_CLI] Intercepted manual daemon invocation: TUPPERWARE_INTEGRITY",
+            "FILESYSTEM_CRITICAL: Gulf-imported 2004 Milton airtight container missing.",
+            "INTEGRITY_PENALTY: +35% maternal panic.",
+            "RECOMMENDED_ACTION: find --bottle"
+          ],
+          suggestedCommands: ['find --bottle', 'apologize --promise:study', 'tea --brew']
+        };
+        setEntries(prev => [...prev, entry]);
+        setIsProcessing(false);
+        return;
+      }
+
+      if (normalized.includes('chaya') || normalized.includes('tea')) {
+        triggerDaemonInterrupt('CHAYA_PIPELINE');
+        sounds.playPressureCooker();
+        const entry: TerminalEntry = {
+          id: `trigger_chaya_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          command: cmd,
+          stress: Math.min(100, stress + 10),
+          stressDelta: 10,
+          state: determineAmmaState(Math.min(100, stress + 10)),
+          ammaDialogue: "Chaya aayeda! Naalu mani aayille? Iniyum aa dabba computer-il thanne kuthi irikkumo? Choodode kudippikkan ivide servant aarum illa!",
+          englishTranslation: "Tea is ready! Isn't it already 4:00 PM? Are you still glued to that metal-box computer? No servants here to serve tea when it gets cold!",
+          systemLogs: [
+            "[TRIGGER_CLI] Intercepted manual daemon invocation: CHAYA_PIPELINE",
+            "CRON_TRIGGER: 4:00 PM evening refreshment schedule.",
+            "KITCHEN: Fresh cardamom tea & hot banana fritters.",
+            "RECOMMENDED_ACTION: chaya --accept"
+          ],
+          suggestedCommands: ['chaya --accept', 'snack --parippuvada', 'glass --wash']
+        };
+        setEntries(prev => [...prev, entry]);
+        setIsProcessing(false);
+        return;
+      }
+
+      if (normalized.includes('random') || normalized.includes('chaos')) {
+        triggerRandomDaemon();
+        const entry: TerminalEntry = {
+          id: `trigger_random_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          command: cmd,
+          stress,
+          stressDelta: 20,
+          state,
+          ammaDialogue: "Veettil ulla prashnam poranjittu random aayi vere prashnam koodi undaakkaan nokkunno? Eeshwara, ivane kondu thottu!",
+          englishTranslation: "As if existing problems weren't enough, you're rolling a dice to spawn random chaos? Good god, I've had it with this child!",
+          systemLogs: [
+            "[TRIGGER_CLI] Rolling pseudorandom Tharavadu household chaos daemon...",
+            "DISPATCH: Household interrupt fired with full audio/visual telemetry."
+          ],
+          suggestedCommands: ['tea --brew', 'thuni --fetch', 'kseb --fuse-check']
+        };
+        setEntries(prev => [...prev, entry]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // 3. Stress Gauge manual calibration
+      if (normalized.includes('stress')) {
+        const match = normalized.match(/trigger\s+(--)?stress[:\s]*([+-]?\d+)/i);
+        let targetStress = stress;
+        if (match) {
+          const valStr = match[2];
+          if (valStr.startsWith('+') || valStr.startsWith('-')) {
+            targetStress = Math.min(100, Math.max(0, stress + parseInt(valStr, 10)));
+          } else {
+            targetStress = Math.min(100, Math.max(0, parseInt(valStr, 10)));
+          }
+        } else {
+          targetStress = Math.min(100, stress + 25);
+        }
+        const delta = targetStress - stress;
+        setStress(targetStress);
+        const updatedState = targetStress >= 98 ? 'MARTYR_MODE' : determineAmmaState(targetStress);
+        setState(updatedState);
+
+        if (targetStress >= 98) {
+          sounds.playErrorChord();
+        } else if (delta < 0) {
+          sounds.playStartup();
+        } else {
+          sounds.playTongueClick();
+        }
+
+        const isFatal = targetStress >= 98;
+        const entry: TerminalEntry = {
+          id: `trigger_stress_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          command: cmd,
+          stress: targetStress,
+          stressDelta: delta,
+          state: updatedState,
+          ammaDialogue: isFatal
+            ? "Ente BP 100% aayi! Ningal aarum oru sahayam cheyyanda! Njan thulanj potte! Achan varumbol ellaam parayam!"
+            : delta > 0
+              ? `Stress koottaan ninakku nalla midukkaanu! Ippo ${targetStress}% aayi! Ee veettil aarkengilum oru manashanthi tharumo?`
+              : `Aashwasam! Stress ${targetStress}%-il ethichu. Kanneer kandu Daivam nallath varuthatte. Chaya kudi!`,
+          englishTranslation: isFatal
+            ? "My blood pressure reached 100%! Nobody touch anything, suffering alone is my fate! Your father will hear about every single thing!"
+            : delta > 0
+              ? `You're exceptionally skilled at hiking my stress! It's now at ${targetStress}%! Can anyone in this house grant me a moment of peace?`
+              : `Relief! Stress brought down to ${targetStress}%. May God bless your sudden burst of good sense. Drink some tea!`,
+          systemLogs: [
+            `[TRIGGER_CLI] Manual Stress Override: ${stress}% -> ${targetStress}% (Delta: ${delta > 0 ? '+' : ''}${delta}%).`,
+            `ANALOG_GAUGE: Needle spring calibrated to ${targetStress}%.`,
+            `KERNEL_STATE: ${updatedState}`
+          ],
+          isGuiltTrip: isFatal,
+          guiltTripText: isFatal ? "Ningal aarum onnum cheyyanda! Njan thanne ee veettil ellam thalayil chumannolu!" : undefined,
+          suggestedCommands: isFatal ? ['reboot --tea-bribe --calm', 'apologize --promise:study'] : ['tea --brew', 'thuni --fetch', 'study --psc']
+        };
+        setEntries(prev => [...prev, entry]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // 4. Instant BSOD Panic
+      if (normalized.includes('bsod') || normalized.includes('panic') || normalized.includes('crash')) {
+        setStress(100);
+        setState('MARTYR_MODE');
+        sounds.playErrorChord();
+        const entry: TerminalEntry = {
+          id: `trigger_bsod_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          command: cmd,
+          stress: 100,
+          stressDelta: 100 - stress,
+          state: 'MARTYR_MODE',
+          ammaDialogue: "FATAL SYSTEM FAILURE! Ente BP 100% kadannu! Ningal aarum oru sahayam cheyyanda! Njan thanne ee adukkalayil veenu maricholu!",
+          englishTranslation: "FATAL SYSTEM FAILURE! My blood pressure surpassed 100%! Don't anyone dare help me! I shall perish alone on the kitchen floor!",
+          systemLogs: [
+            "[TRIGGER_CLI] MANUAL BSOD PANIC INDUCED VIA TERMINAL.",
+            "FATAL: AMMA STRESS HIT 100% (MARTYR_MODE ENGAGED).",
+            "BLUE_SCREEN_OF_DEATH: Kernel panic locked out."
+          ],
+          isGuiltTrip: true,
+          guiltTripText: "Ningal aarum oru chaya polum tharanda! Njan thanne kashtappedam!",
+          suggestedCommands: ['reboot --tea-bribe --calm', 'apologize --promise:study']
+        };
+        setEntries(prev => [...prev, entry]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // 5. Calm reset
+      if (normalized.includes('calm') || normalized.includes('chill')) {
+        setStress(20);
+        setState('CALM_CHAYA');
+        sounds.playStartup();
+        confetti({ particleCount: 30, spread: 60 });
+        const entry: TerminalEntry = {
+          id: `trigger_calm_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          command: cmd,
+          stress: 20,
+          stressDelta: 20 - stress,
+          state: 'CALM_CHAYA',
+          ammaDialogue: "Aaha! Ente manass onnu kulirthu! Shanthamayi oru chaya kudi, pinne nalla kuttiyayi poyi pusthakam vaayikku!",
+          englishTranslation: "Aah! My heart is at peace at last! Drink your warm tea peacefully, then be a good child and read your textbooks!",
+          systemLogs: [
+            "[TRIGGER_CLI] Manual Calm Override executed.",
+            "STRESS_METER: Reset to 20% (CALM_CHAYA).",
+            "ATMOSPHERE: Devotional Yesudas music humming in background."
+          ],
+          suggestedCommands: ['tea --brew', 'snack --parippuvada', 'study --psc']
+        };
+        setEntries(prev => [...prev, entry]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // 6. Subsystem / Window Triggers
+      if (normalized.includes('achan') || normalized.includes('father')) {
+        setWindows(prev => ({ ...prev, achan: true }));
+        setFocusedWindow('achan');
+        sounds.playStartup();
+        const entry: TerminalEntry = {
+          id: `trigger_achan_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          command: cmd,
+          stress: Math.max(15, stress - 20),
+          stressDelta: -20,
+          state: determineAmmaState(Math.max(15, stress - 20)),
+          ammaDialogue: "Achanod parayippicho? Achan Malayala Manorama vaayikkukayaanu! Athu kondu njan ippozhathekku onnum parayunnilla!",
+          englishTranslation: "You got your father involved? He is reading the Malayala Manorama editorial! Only because of that am I letting this slide for now!",
+          systemLogs: [
+            "[TRIGGER_CLI] ACHAN.SYS Paternal Firewall summoned.",
+            "WINDOW_DISPATCH: Achan modal opened in foreground.",
+            "DIPLOMACY: Paternal intervention applied (-20% stress)."
+          ],
+          suggestedCommands: ['tea --brew', 'study --psc', 'clean --room --fast']
+        };
+        setEntries(prev => [...prev, entry]);
+        setStress(Math.max(15, stress - 20));
+        setIsProcessing(false);
+        return;
+      }
+
+      if (normalized.includes('saree')) {
+        setWindows(prev => ({ ...prev, saree: true }));
+        setFocusedWindow('saree');
+        sounds.playThunder();
+        const entry: TerminalEntry = {
+          id: `trigger_saree_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          command: cmd,
+          stress,
+          stressDelta: 0,
+          state,
+          ammaDialogue: "Terrace-le mazha run thuranno? Kasavu saree nanayathe nokkikko! Oru drop mazhavellam veenal njan pinne parayam!",
+          englishTranslation: "Opened the terrace rain run? Make sure not a single drop hits the gold kasavu saree or you'll hear it from me!",
+          systemLogs: [
+            "[TRIGGER_CLI] SAREE_RUN.EXE minigame window launched.",
+            "VIEWPORT: Rooftop terrace laundry line active."
+          ],
+          suggestedCommands: ['thuni --fetch', 'tea --brew']
+        };
+        setEntries(prev => [...prev, entry]);
+        setIsProcessing(false);
+        return;
+      }
+
+      if (normalized.includes('kudumbam') || normalized.includes('whatsapp')) {
+        setWindows(prev => ({ ...prev, kudumbam: true }));
+        setFocusedWindow('kudumbam');
+        sounds.playTongueClick();
+        const entry: TerminalEntry = {
+          id: `trigger_kudumbam_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          command: cmd,
+          stress,
+          stressDelta: 0,
+          state,
+          ammaDialogue: "Kudumbam WhatsApp group thuranno? Sukumaran Ammavante Good Morning message-inu namaskaram kodutho?",
+          englishTranslation: "Opened the Kudumbam WhatsApp group? Did you reply with respectful folded hands to Sukumaran Uncle's Good Morning message?",
+          systemLogs: [
+            "[TRIGGER_CLI] KUDUMBAM_95 Family Messenger launched.",
+            "STATUS: 4 pending unread family forwards."
+          ],
+          suggestedCommands: ['study --psc', 'tea --brew', 'phone --hide']
+        };
+        setEntries(prev => [...prev, entry]);
+        setIsProcessing(false);
+        return;
+      }
+
+      if (normalized.includes('cooker') || normalized.includes('whistle')) {
+        triggerDaemonInterrupt('COOKER_WHISTLE');
+        sounds.playPressureCooker();
+        const entry: TerminalEntry = {
+          id: `trigger_cooker_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          command: cmd,
+          stress: Math.min(100, stress + 20),
+          stressDelta: 20,
+          state: determineAmmaState(Math.min(100, stress + 20)),
+          ammaDialogue: "Prestige cooker 3 whistle adichu kando! Gas knob sim cheyyedo! Paranjaal kelkkilla!",
+          englishTranslation: "The Prestige pressure cooker whistled 3 times! Turn the gas knob down to sim! You never listen when told!",
+          systemLogs: [
+            "[TRIGGER_CLI] Intercepted manual daemon invocation: COOKER_WHISTLE",
+            "Prestige 5L Pressure Cooker whistle acoustics triggered.",
+            "GAS_STATUS: Simmer required immediately."
+          ],
+          suggestedCommands: ['gas --sim --knob:low', 'tea --brew', 'clean --room --fast']
+        };
+        setEntries(prev => [...prev, entry]);
+        setIsProcessing(false);
+        return;
+      }
+
+      if (normalized.includes('mixie')) {
+        triggerDaemonInterrupt('MIXIE_GRIND');
+        sounds.playMixieGrind();
+        const entry: TerminalEntry = {
+          id: `trigger_mixie_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          command: cmd,
+          stress: Math.min(100, stress + 15),
+          stressDelta: 15,
+          state: determineAmmaState(Math.min(100, stress + 15)),
+          ammaDialogue: "Preethi mixie-yil thenga arachukko! Current poyaal ammiyil araykendi varum!",
+          englishTranslation: "Grind the coconut in the Preethi mixie right now! If power goes out, you'll be grinding on stone!",
+          systemLogs: [
+            "[TRIGGER_CLI] Intercepted manual daemon invocation: MIXIE_GRIND",
+            "Preethi 750W Mixie acoustic blast triggered.",
+            "RPM: 18,000 | Thenga chammanthi in progress."
+          ],
+          suggestedCommands: ['mixie --grind --fast', 'tea --brew', 'kseb --fuse-check']
+        };
+        setEntries(prev => [...prev, entry]);
+        setIsProcessing(false);
+        return;
+      }
+
+      if (normalized.includes('gate')) {
+        triggerDaemonInterrupt('GATE_CREAK');
+        sounds.playGateCreak();
+        const entry: TerminalEntry = {
+          id: `trigger_gate_${Date.now()}`,
+          timestamp: clockTime,
+          clock: clockTime,
+          command: cmd,
+          stress: Math.min(100, stress + 22),
+          stressDelta: 22,
+          state: determineAmmaState(Math.min(100, stress + 22)),
+          ammaDialogue: "Iron gate squeak cheythu! Aaraannu nokkeda! Sukumaran Ammavan aano?",
+          englishTranslation: "The iron gate squeaked! Look outside and see who it is! Is that Sukumaran Uncle?",
+          systemLogs: [
+            "[TRIGGER_CLI] Intercepted manual daemon invocation: GATE_CREAK",
+            "Squeaky iron front gate acoustic triggered.",
+            "ACOUSTIC_RADAR: Approach detected."
+          ],
+          suggestedCommands: ['sitout --greet --tea', 'phone --hide', 'tea --brew']
+        };
+        setEntries(prev => [...prev, entry]);
+        setIsProcessing(false);
+        return;
+      }
+
+      // Default fallback for unrecognized trigger
+      const entry: TerminalEntry = {
+        id: `trigger_unknown_${Date.now()}`,
+        timestamp: clockTime,
+        clock: clockTime,
+        command: cmd,
+        stress,
+        stressDelta: 0,
+        state,
+        ammaDialogue: "Enthu trigger aaneda nee type cheytha? Onnum manassilayilla! 'trigger list' ennu type cheythu nokk!",
+        englishTranslation: "What kind of trigger did you just type? Made no sense! Type 'trigger list' to see what actually exists!",
+        systemLogs: [
+          `[TRIGGER_CLI] Unrecognized trigger parameter: '${cmd}'.`,
+          "HINT: Type 'trigger list' or 'trigger --help' for full catalog."
+        ],
+        suggestedCommands: ['trigger list', 'trigger mazha', 'trigger kseb']
+      };
+      setEntries(prev => [...prev, entry]);
+      setIsProcessing(false);
+      return;
     }
 
     if (cmd.toLowerCase().trim() === 'help' || cmd.toLowerCase().trim() === 'man') {
@@ -291,28 +876,18 @@ export default function App() {
     }
   };
 
-  // Trigger specific household daemon interrupt
-  const triggerDaemonInterrupt = (daemonType: DaemonType) => {
-    const interrupt = DAEMON_INTERRUPTS[daemonType];
-    if (interrupt) {
-      setActiveInterrupt(interrupt);
-      const newStress = Math.min(100, stress + interrupt.initialStressBump);
-      setStress(newStress);
-      setState(determineAmmaState(newStress));
-    }
+  // Trigger specific or dynamic procedural household daemon interrupt
+  const triggerDaemonInterrupt = (daemonType?: DaemonType) => {
+    const interrupt = generateDynamicDaemonInterrupt(daemonType);
+    setActiveInterrupt(interrupt);
+    const newStress = Math.min(100, stress + interrupt.initialStressBump);
+    setStress(newStress);
+    setState(determineAmmaState(newStress));
   };
 
-  // Trigger random panic daemon
+  // Trigger completely randomized panic daemon with procedural variety
   const triggerRandomDaemon = () => {
-    const types: DaemonType[] = [
-      'MAZHA.EXE',
-      'KSEB_TRIP',
-      'GUEST_RADAR',
-      'TUPPERWARE_INTEGRITY',
-      'CHAYA_PIPELINE'
-    ];
-    const chosen = types[Math.floor(Math.random() * types.length)];
-    triggerDaemonInterrupt(chosen);
+    triggerDaemonInterrupt();
   };
 
   // Handle interrupt timeout
@@ -814,7 +1389,7 @@ export default function App() {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.92, opacity: 0, y: 10 }}
             transition={{ duration: 0.18 }}
-            className="fixed inset-4 md:inset-auto md:bottom-16 md:left-32 md:w-[440px] md:h-[390px] z-30 shadow-2xl"
+            className="fixed inset-3 md:inset-auto md:bottom-14 md:left-28 md:w-[490px] md:h-[500px] z-30 shadow-2xl flex flex-col"
           >
             <GuestRadar
               onClose={() => setWindows(prev => ({ ...prev, radar: false }))}
@@ -975,30 +1550,31 @@ export default function App() {
       <AnimatePresence>
         {windows.achan && (
           <AchanDaemonModal
-            isOpen={windows.achan}
             currentStress={stress}
-            onMediate={() => {
-              const newStress = Math.max(15, stress - 35);
+            onApplyRagebait={(addedStress, achanQuote, ammaReply, cmd) => {
+              const newStress = Math.min(100, stress + addedStress);
               setStress(newStress);
               setState(determineAmmaState(newStress));
-              setWindows(prev => ({ ...prev, achan: false }));
               const entry: TerminalEntry = {
-                id: `achan_mediation_${Date.now()}`,
+                id: `achan_rage_${Date.now()}`,
                 timestamp: clockTime,
                 clock: clockTime,
-                command: 'achan --mediate --bypass-rage',
+                command: cmd,
                 stress: newStress,
-                stressDelta: -35,
+                stressDelta: addedStress,
                 state: determineAmmaState(newStress),
-                ammaDialogue: "Achanod parayippicho? Achan paranjathu kondu maathram njan onnum parayunnilla! Oru chaya koodi ittekaam, poyirunnu padikkan nokk!",
+                ammaDialogue: ammaReply,
                 systemLogs: [
-                  'ACHAN_SYS: Paternal mediation protocol enacted.',
-                  'MANORAMA_SHIELD: Malayala Manorama editorial reading neutralized Amma anger.',
-                  'BYPASS_STATUS: Amma rage reduced by 35%.'
+                  `ACHAN_RAGEBAIT: "${achanQuote}"`,
+                  `MATERNAL_REACTION: 5-alarm kitchen firestorm triggered!`,
+                  `STRESS: +${addedStress}% -> ${newStress}%`
                 ],
-                suggestedCommands: ['tea --brew', 'study --psc', 'clean --room']
+                suggestedCommands: ['praise --sambar', 'tea --brew', 'study --psc', 'thuni --fetch']
               };
               setEntries(prev => [...prev, entry]);
+            }}
+            onExecuteSolution={(solutionCmd) => {
+              handleExecuteCommand(solutionCmd);
             }}
             onClose={() => setWindows(prev => ({ ...prev, achan: false }))}
           />
@@ -1037,6 +1613,12 @@ export default function App() {
           setStress(100);
           setState('MARTYR_MODE');
         }}
+      />
+
+      {/* Windows 95 Desktop Notification Toast */}
+      <DesktopToast
+        toast={activeToast}
+        onDismiss={() => setActiveToast(null)}
       />
 
       {/* Windows 95 Taskbar */}

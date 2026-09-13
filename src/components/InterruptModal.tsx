@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { DaemonInterrupt } from '../types';
 import { sounds } from '../utils/sound';
-import { AlertTriangle, Clock, CloudRain, Zap, Users, Package, Coffee } from 'lucide-react';
+import { AlertTriangle, Clock, CloudRain, Zap, Users, Package, Coffee, Utensils, Disc3, MessageSquare, Flame, Bell } from 'lucide-react';
 
 interface InterruptModalProps {
   interrupt: DaemonInterrupt;
@@ -24,8 +24,16 @@ export const InterruptModal: React.FC<InterruptModalProps> = ({
       sounds.playThunder();
     } else if (interrupt.type === 'KSEB_TRIP') {
       sounds.playInverterBeep();
-    } else if (interrupt.type === 'CHAYA_PIPELINE') {
+    } else if (interrupt.type === 'CHAYA_PIPELINE' || interrupt.type === 'COOKER_WHISTLE') {
       sounds.playPressureCooker();
+    } else if (interrupt.type === 'MIXIE_GRIND') {
+      sounds.playMixieGrind();
+    } else if (interrupt.type === 'GATE_CREAK') {
+      sounds.playGateCreak();
+    } else if (interrupt.type === 'KUDUMBAM_FORWARD') {
+      sounds.playTongueClick();
+    } else if (interrupt.type === 'ACHAN_REMARK') {
+      sounds.playErrorChord();
     } else {
       sounds.playErrorChord();
     }
@@ -69,6 +77,16 @@ export const InterruptModal: React.FC<InterruptModalProps> = ({
         return <Package size={28} className="text-red-600" />;
       case 'CHAYA_PIPELINE':
         return <Coffee size={28} className="text-amber-700" />;
+      case 'COOKER_WHISTLE':
+        return <Utensils size={28} className="text-orange-600" />;
+      case 'MIXIE_GRIND':
+        return <Disc3 size={28} className="text-emerald-700" />;
+      case 'KUDUMBAM_FORWARD':
+        return <MessageSquare size={28} className="text-green-600" />;
+      case 'ACHAN_REMARK':
+        return <Flame size={28} className="text-red-600" />;
+      case 'GATE_CREAK':
+        return <Bell size={28} className="text-stone-700" />;
     }
   };
 

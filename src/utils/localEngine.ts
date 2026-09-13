@@ -81,6 +81,76 @@ export const DAEMON_INTERRUPTS: Record<DaemonType, DaemonInterrupt> = {
     primaryAction: 'chaya --accept --sugar:less',
     secondaryAction: 'tea --reject --say:later',
     dialogueTrigger: 'Chaya aayeda! Naalu mani aayille? Iniyum aa dabba computer-il thanne kuthi irikkumo? Choodode kudippikkan ivide servant aarum illa!'
+  },
+  'COOKER_WHISTLE': {
+    id: 'int_cooker',
+    type: 'COOKER_WHISTLE',
+    title: 'KITCHEN ACOUSTIC: PRESTIGE COOKER 3RD WHISTLE',
+    description: 'Prestige 5L pressure cooker has whistled 3 times! Dal will burn if gas knob is not turned down to sim immediately.',
+    urgency: 'HIGH',
+    countdownSeconds: 20,
+    initialStressBump: 20,
+    failureStressBump: 30,
+    successStressDrop: 20,
+    primaryAction: 'gas --sim --knob:low',
+    secondaryAction: 'cooker --ignore',
+    dialogueTrigger: 'Cooker 3 whistle adichu kando! Gas sim cheyyedo! Paranjaal oru cheviyil koodi keri matthe cheviyil koodi pokum!'
+  },
+  'MIXIE_GRIND': {
+    id: 'int_mixie',
+    type: 'MIXIE_GRIND',
+    title: 'HIGH-RPM MOTOR ALERT: PREETHI 750W MIXIE',
+    description: 'Fresh grated coconut and green chillies waiting on jar. If KSEB trips before grinding chammanthi, stone grinding is mandatory.',
+    urgency: 'MEDIUM',
+    countdownSeconds: 25,
+    initialStressBump: 15,
+    failureStressBump: 25,
+    successStressDrop: 15,
+    primaryAction: 'mixie --grind --fast',
+    secondaryAction: 'mixie --off',
+    dialogueTrigger: 'Preethi mixie-yil thenga arachukko! Current poyaal ammiyil araykendi varum! Ninte phone-il nokki irunna thenga arayilla!'
+  },
+  'KUDUMBAM_FORWARD': {
+    id: 'int_kudumbam',
+    type: 'KUDUMBAM_FORWARD',
+    title: 'WHATSAPP BROADCAST: KUDUMBAM GROUP FORWARD',
+    description: 'Sukumaran Ammavan sent a 45MB video forward wishing "Subhadinam" with flower glitter. Amma demands immediate respectful reply.',
+    urgency: 'MEDIUM',
+    countdownSeconds: 30,
+    initialStressBump: 15,
+    failureStressBump: 25,
+    successStressDrop: 15,
+    primaryAction: 'whatsapp --reply:pranams',
+    secondaryAction: 'whatsapp --mute',
+    dialogueTrigger: 'Kudumbam WhatsApp-il Ammavan message ayachu! Oru namaskaram parayaan polum ninte thumb viral-inu sheshi ille?!'
+  },
+  'ACHAN_REMARK': {
+    id: 'int_achan',
+    type: 'ACHAN_REMARK',
+    title: 'PATERNAL PROVOCATION: ACHAN SITOUT RAGEBAIT',
+    description: 'Achan lowered his reading glasses and remarked that the sambar lacks salt compared to his elder brother’s house. Kitchen thermonuclear detonation imminent!',
+    urgency: 'CRITICAL',
+    countdownSeconds: 25,
+    initialStressBump: 28,
+    failureStressBump: 35,
+    successStressDrop: 30,
+    primaryAction: 'praise --sambar --best-in-kerala',
+    secondaryAction: 'uppu --fetch --salt-cruet',
+    dialogueTrigger: 'Achan paranjathu kando?! Sambar-il uppu kuravaannu! Annan-te veettil poyi thinnaan para! Njan innu muthal ivide onnum cooking cheyyilla!'
+  },
+  'GATE_CREAK': {
+    id: 'int_gate',
+    type: 'GATE_CREAK',
+    title: 'PERIMETER SENSOR: FRONT IRON GATE CREAK',
+    description: 'Acoustic squeak at front boundary gate. Someone is walking up the red-oxide tiled driveway. Unannounced guest emergency!',
+    urgency: 'HIGH',
+    countdownSeconds: 20,
+    initialStressBump: 22,
+    failureStressBump: 30,
+    successStressDrop: 20,
+    primaryAction: 'sitout --greet --tea',
+    secondaryAction: 'phone --hide',
+    dialogueTrigger: 'Iron gate thuranna shabdham kettu! Aaraannu nokkeda! Ninte koottukaar aano atho relatives aano? Odi poyi nokku!'
   }
 };
 
@@ -516,7 +586,143 @@ export function generateLocalResponse(
   }
 
   // 2. Parse general CLI commands
-  if (cmd.includes('tea') || cmd.includes('chaya') || cmd.includes('brew')) {
+  if (cmd.startsWith('trigger') || cmd.startsWith('trig')) {
+    if (cmd === 'trigger' || cmd.includes('trigger list') || cmd.includes('trigger --help') || cmd.includes('trigger help') || cmd === 'trig') {
+      newStress = currentStress;
+      dialoguePair = {
+        malayalam: "Trigger list-o? Veettile prashnangal list cheyyaan ivan terminal thurannu vechirikkunnu! Oru chaya venamenkil mathram ivanu ariyilla!",
+        english: "Trigger list? Opening a terminal to inventory household disasters! Yet you can never make a simple cup of tea on time!"
+      };
+      logs = [
+        "=== THARAVADU KERNEL TRIGGER MANUAL ===",
+        "trigger mazha       -> Summon MAZHA.EXE (Rain clouds & wet terrace laundry, +25% stress)",
+        "trigger kseb        -> Summon KSEB_TRIP (Power cut & screaming inverter, +20% stress)",
+        "trigger guest       -> Summon GUEST_RADAR (Sukumaran Ammavan arrival, +30% stress)",
+        "trigger tupperware  -> Summon TUPPERWARE_INTEGRITY (Missing 2004 Dubai bottle, +35% stress)",
+        "trigger chaya       -> Summon CHAYA_PIPELINE (4:00 PM tea & snacks deadline, +10% stress)",
+        "trigger random      -> Summon random chaotic household daemon",
+        "trigger stress <n>  -> Set stress (e.g. 'trigger stress 85', 'trigger stress +25')",
+        "trigger bsod        -> Trigger 100% Martyr Mode crash screen",
+        "trigger calm        -> Set Amma to 20% calm state with fresh tea",
+        "trigger achan       -> Open Achan Paternal Diplomatic Firewall",
+        "trigger saree       -> Launch Saree Rescue minigame",
+        "trigger kudumbam    -> Open Kudumbam WhatsApp Messenger",
+        "trigger cooker      -> Kitchen acoustic: 3 whistles from Prestige cooker",
+        "trigger mixie       -> Kitchen acoustic: Preethi mixie high-speed grind",
+        "trigger gate        -> Peripheral acoustic: Squeaky iron front gate"
+      ];
+      suggested = ["trigger mazha", "trigger kseb", "trigger stress +30"];
+    } else if (cmd.includes('mazha') || cmd.includes('rain')) {
+      newStress = Math.min(100, currentStress + 25);
+      dialoguePair = {
+        malayalam: "Mazha kaaruthu! Terrace-il kalyana pattu-saree nananju kulikkum! Odi poyi thuni edukkeda!",
+        english: "Storm clouds overhead! My wedding silk saree will be ruined on the terrace! Run up and fetch the laundry!"
+      };
+      logs = [
+        "TRIGGER_DISPATCH: MAZHA.EXE daemon armed via CLI.",
+        "URGENCY: CRITICAL (25s window).",
+        "RECOMMENDED: thuni --fetch"
+      ];
+      suggested = ["thuni --fetch", "rain --ignore", "saree"];
+    } else if (cmd.includes('kseb') || cmd.includes('power') || cmd.includes('fuse')) {
+      newStress = Math.min(100, currentStress + 20);
+      dialoguePair = {
+        malayalam: "Current poyi! Inverter scream cheyyunnu! Ninte aa chintha-shakthi illatha phone charger aanu kaaranam! Feeder trip aayi!",
+        english: "Power cut! The inverter is screaming! It's because you plugged in your smartphone charger! The entire substation feeder tripped!"
+      };
+      logs = [
+        "TRIGGER_DISPATCH: KSEB_TRIP daemon armed via CLI.",
+        "GRID_STATUS: 0V AC line collapse.",
+        "ACTION: kseb --fuse-check"
+      ];
+      suggested = ["kseb --fuse-check", "phone --unplug", "study --psc"];
+    } else if (cmd.includes('guest') || cmd.includes('radar') || cmd.includes('sukumaran')) {
+      newStress = Math.min(100, currentStress + 30);
+      dialoguePair = {
+        malayalam: "Ayyoo Sukumaran Ammavan vannallo! Chekkan ivide lungi uduthu computer-il nokki irikkunnu! Odi poyi nalla shirt ideda!",
+        english: "Oh god Sukumaran Uncle has arrived! You're sitting in a lungi staring at the screen! Run and put on a decent shirt before he walks in!"
+      };
+      logs = [
+        "TRIGGER_DISPATCH: GUEST_RADAR daemon armed via CLI.",
+        "TARGET: Sukumaran Ammavan (Bajaj Chetak).",
+        "ACTION: sitout --greet --tea"
+      ];
+      suggested = ["sitout --greet --tea", "biscuit --goodday", "bedroom --lock --hide"];
+    } else if (cmd.includes('tupperware') || cmd.includes('milton') || cmd.includes('bottle')) {
+      newStress = Math.min(100, currentStress + 35);
+      dialoguePair = {
+        malayalam: "Ente manja Tupperware bottle evide?! Ninte achan 15 kollam munpe Gulf-il ninnu vangi thannathaanu! Athu Shaji-kk kondu kodutho?!",
+        english: "Where is my yellow Tupperware bottle?! Your father brought that from the Gulf 15 years ago! Did you give it away to Shaji?!"
+      };
+      logs = [
+        "TRIGGER_DISPATCH: TUPPERWARE_INTEGRITY audit armed via CLI.",
+        "ITEM: 2004 Dubai airtight yellow bottle.",
+        "STATUS: MISSING."
+      ];
+      suggested = ["find --bottle", "apologize --promise:study", "tea --brew"];
+    } else if (cmd.includes('chaya') || cmd.includes('tea')) {
+      newStress = Math.min(100, currentStress + 10);
+      dialoguePair = {
+        malayalam: "Chaya thilachu aari pokunnu! Naalu mani aayille? Choodode kudippikkan ivide servant aarum illa!",
+        english: "The tea is boiling and cooling down! It's already 4 PM! There are no servants here to serve you at your convenience!"
+      };
+      logs = [
+        "TRIGGER_DISPATCH: CHAYA_PIPELINE cron interrupt armed via CLI.",
+        "SCHEDULE: 4:00 PM evening tea window.",
+        "SNACKS: Parippuvada & Pazham Pori."
+      ];
+      suggested = ["chaya --accept", "snack --parippuvada", "glass --wash"];
+    } else if (cmd.includes('stress')) {
+      const match = cmd.match(/trigger\s+(--)?stress[:\s]*([+-]?\d+)/i);
+      let targetStress = currentStress;
+      if (match) {
+        const valStr = match[2];
+        if (valStr.startsWith('+') || valStr.startsWith('-')) {
+          targetStress = Math.min(100, Math.max(0, currentStress + parseInt(valStr, 10)));
+        } else {
+          targetStress = Math.min(100, Math.max(0, parseInt(valStr, 10)));
+        }
+      } else {
+        targetStress = Math.min(100, currentStress + 25);
+      }
+      newStress = targetStress;
+      const isFatal = newStress >= 98;
+      dialoguePair = isFatal ? {
+        malayalam: "Ente BP 100% aayi! Ningal aarum oru sahayam cheyyanda! Njan thulanj potte!",
+        english: "My blood pressure reached 100%! Nobody touch anything, suffering alone is my eternal destiny!"
+      } : {
+        malayalam: `Stress calibration complete: ${newStress}%. Samayathinu oru kaaryam cheythal ivide ellarkkum shanthatha undaavum!`,
+        english: `Stress calibration complete: ${newStress}%. If things are done on time, everyone in this house will have peace!`
+      };
+      logs = [
+        `TRIGGER_DISPATCH: Stress set to ${newStress}%.`,
+        `STATUS: Gauge recalibrated.`
+      ];
+      suggested = isFatal ? ["reboot --tea-bribe --calm", "apologize --promise:study"] : ["tea --brew", "thuni --fetch", "study --psc"];
+    } else if (cmd.includes('calm')) {
+      newStress = 20;
+      dialoguePair = {
+        malayalam: "Aaha! Ente manass onnu kulirthu! Shanthamayi oru chaya kudi!",
+        english: "Aah! My heart is at peace at last! Drink your warm tea peacefully!"
+      };
+      logs = [
+        "TRIGGER_DISPATCH: Maternal calm mode active (20% stress).",
+        "TELEMETRY: Yashudas devotional humming restored."
+      ];
+      suggested = ["tea --brew", "snack --parippuvada", "study --psc"];
+    } else {
+      newStress = currentStress;
+      dialoguePair = {
+        malayalam: "Enthu trigger aaneda nee type cheytha? Onnum manassilayilla! 'trigger list' ennu type cheythu nokk!",
+        english: "What trigger did you type? Type 'trigger list' to see all valid trigger commands!"
+      };
+      logs = [
+        `TRIGGER: '${rawCmd}' unrecognized.`,
+        "TYPE 'trigger list' for the complete triggers manual."
+      ];
+      suggested = ["trigger list", "trigger mazha", "trigger kseb"];
+    }
+  } else if (cmd.includes('tea') || cmd.includes('chaya') || cmd.includes('brew')) {
     newStress = Math.max(15, currentStress - 15);
     dialoguePair = pickRandom(TEA_BREW_DIALOGUES);
     logs = [
@@ -663,6 +869,66 @@ export function generateLocalResponse(
       "GAS_STATUS: Simmer required to avoid burnt dal."
     ];
     suggested = ["tea --brew", "clean --room --fast", "study --psc"];
+  } else if (cmd.includes('sitout') || (cmd.includes('greet') && cmd.includes('tea'))) {
+    newStress = Math.max(15, currentStress - 20);
+    dialoguePair = {
+      malayalam: "Sukumaran Ammavanu choodu Sulaimani chaya kodutho? Athu nannaayi! Adheham pension kaaryam paranju thudangi. Njan poyi snack koodi edukkam!",
+      english: "Served hot Sulaimani black tea to Sukumaran Ammavan? Wonderful! He has begun talking about his pension memories. I will fetch some banana chips!"
+    };
+    logs = [
+      "SITOUT_DIPLOMACY: Sulaimani tea served with cardamom & mint.",
+      "GUEST_STATUS: Sukumaran Ammavan pacified on sit-out easy chair.",
+      "STRESS_DELTA: -20%"
+    ];
+    suggested = ["biscuit --goodday", "plants --water", "study --psc"];
+  } else if (cmd.includes('bedroom') && (cmd.includes('lock') || cmd.includes('hide'))) {
+    newStress = Math.min(100, currentStress + 20);
+    dialoguePair = {
+      malayalam: "Ammavan sit-out-il vannu irikkumbozhaano nee bedroom lock cheythu akathirikkunne? Naanamkedaan aayittu oronnu undaayikkollum! Thurakkeda vaathil!",
+      english: "Uncle is sitting on the veranda and you locked your bedroom door and hid inside? What will he think of our parenting? Open the door this instant!"
+    };
+    logs = [
+      "DEFENSIVE_FAIL: Bedroom door locked.",
+      "MATERNAL_SHAME: Relatives witnessing antisocial behavior.",
+      "STRESS_DELTA: +20% (Disapproval penalty)"
+    ];
+    suggested = ["sitout --greet --tea", "biscuit --goodday", "apologize --promise:study"];
+  } else if (cmd.includes('praise') && cmd.includes('sambar')) {
+    newStress = Math.max(15, currentStress - 30);
+    dialoguePair = {
+      malayalam: "Kando? Nammude chekkanu karyangal ariyaam! Ammede sambar aanu naattile ettavum nallathu! Achanod para poyi vere veettil poi kazhikkan!",
+      english: "See that? Our child knows true taste! Amma's sambar is the undisputed finest in Kerala! Tell your father to go find his lunch elsewhere!"
+    };
+    logs = [
+      "MATERNAL_VALIDATION: Child defended Amma's culinary legacy.",
+      "COUNTER_STRIKE: Paternal criticism thoroughly discredited.",
+      "STRESS_DELTA: -30%"
+    ];
+    suggested = ["tea --brew", "study --psc", "glass --wash"];
+  } else if (cmd.includes('uppu') || (cmd.includes('salt') && cmd.includes('fetch'))) {
+    newStress = Math.max(15, currentStress - 20);
+    dialoguePair = {
+      malayalam: "Athanu nallathu! Uppu venamenkil bharani eduthu table-il vekkada! Allaathe kuttam parayan aalkkarundallo!",
+      english: "That is the right way! If he wants more salt, let him sprinkle it himself from the jar instead of criticizing my 30-year recipe!"
+    };
+    logs = [
+      "CRUET_DISPATCH: Ceramic salt jar placed on dining table.",
+      "FIREWALL_STATUS: Achan salt debate neutralized.",
+      "STRESS_DELTA: -20%"
+    ];
+    suggested = ["tea --brew", "snack --parippuvada", "study --psc"];
+  } else if (cmd.includes('clothstand') || cmd.includes('stand')) {
+    newStress = Math.max(15, currentStress - 25);
+    dialoguePair = {
+      malayalam: "Cloth stand hall-il kondu vecho? Nannaayi! Ee manushyan sit-out-il irunnu paper vayikkumbozhe njan paranjathaanu mazha varumennu!",
+      english: "Deployed the folding cloth rack in the living room? Good job! While this man sat reading newspapers, I knew it would pour!"
+    };
+    logs = [
+      "INDOOR_LOGISTICS: Stainless steel folding rack deployed.",
+      "LAUNDRY_STATUS: Silk sarees drying safely under Usha ceiling fan.",
+      "STRESS_DELTA: -25%"
+    ];
+    suggested = ["tea --brew", "thuni --fold", "study --psc"];
   } else if (cmd.includes('gate') || cmd.includes('sound') || cmd.includes('guest')) {
     dialoguePair = {
       malayalam: "Gate thurakkunna shabdham kettu! Aaraannu nokkiya? Sukumaran Ammavan aanengil sit-out-le chaya flask eduthu vekku!",
@@ -701,6 +967,30 @@ export function generateLocalResponse(
       "STRESS_BASELINE: Reset to CALM_CHAYA 25%."
     ];
     suggested = ["tea --brew", "study --psc", "clean --room --fast"];
+  } else if (cmd.includes('gas') || (cmd.includes('sim') && cmd.includes('knob'))) {
+    newStress = Math.max(15, currentStress - 20);
+    dialoguePair = {
+      malayalam: "Gas knob sim aakkiya? Nannaayi! Athu karanju karinju poyaal innu raathri namukku parippu curry undaavilla aayirunnu!",
+      english: "Turned the gas knob to sim? Good! If that dal burned to a crisp, there would have been no curry for dinner tonight!"
+    };
+    logs = [
+      "BURNER_CONTROL: Prestige cooker flame lowered to low simmer.",
+      "DAL_SECURITY: Parappu curry rescued from scorching.",
+      "STRESS_DELTA: -20%"
+    ];
+    suggested = ["tea --brew", "clean --room --fast", "study --psc"];
+  } else if (cmd.includes('whatsapp') && (cmd.includes('reply') || cmd.includes('pranam') || cmd.includes('namaskaram'))) {
+    newStress = Math.max(15, currentStress - 20);
+    dialoguePair = {
+      malayalam: "Kudumbam group-il Ammavanu folded hands namaskaram kodutho? Athu nannaayi! Allengil adutha kalyanathinu kanumbol kutham paranjene!",
+      english: "Sent respectful folded-hands emoji to Sukumaran Uncle in the Kudumbam group? Excellent! Otherwise he would complain at the next wedding reception!"
+    };
+    logs = [
+      "FAMILY_NETIQUETTE: Folded-hands greeting transmitted to Kudumbam 95.",
+      "AMMVAAN_APPROVAL: 100% respect quotient maintained.",
+      "STRESS_DELTA: -20%"
+    ];
+    suggested = ["study --psc", "tea --brew", "phone --hide"];
   } else if (cmd.includes('bsod') || cmd.includes('panic') || cmd.includes('crash')) {
     newStress = 100;
     isGuiltTrip = true;

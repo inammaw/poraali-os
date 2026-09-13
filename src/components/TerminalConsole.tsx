@@ -17,7 +17,8 @@ import {
   Smartphone, 
   HeartHandshake,
   TrendingDown,
-  TrendingUp
+  TrendingUp,
+  Zap
 } from 'lucide-react';
 
 interface TerminalConsoleProps {
@@ -41,7 +42,7 @@ export const TerminalConsole: React.FC<TerminalConsoleProps> = ({
   const [voiceSpeechEnabled, setVoiceSpeechEnabled] = useState(false);
   const [showTranslations, setShowTranslations] = useState(true);
   const [showQuickDeck, setShowQuickDeck] = useState(false);
-  const [quickDeckCategory, setQuickDeckCategory] = useState<'chaya' | 'chores' | 'survival' | 'bribe'>('chaya');
+  const [quickDeckCategory, setQuickDeckCategory] = useState<'chaya' | 'chores' | 'survival' | 'bribe' | 'triggers'>('chaya');
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -131,6 +132,20 @@ export const TerminalConsole: React.FC<TerminalConsoleProps> = ({
       { label: '🙏 Humble Repentance & Study', cmd: 'apologize --promise:study', delta: '-20%' },
       { label: '🫖 Double Milk Tea Bribe', cmd: 'reboot --tea-bribe --calm', delta: '-30%' },
       { label: '💥 100% Panic BSOD Crash', cmd: 'bsod', delta: '100%' }
+    ],
+    triggers: [
+      { label: '🌧️ Trigger Mazha.exe', cmd: 'trigger mazha', delta: '+25%' },
+      { label: '⚡ Trigger KSEB Trip', cmd: 'trigger kseb', delta: '+20%' },
+      { label: '🛵 Trigger Guest Radar', cmd: 'trigger guest', delta: '+30%' },
+      { label: '🍼 Trigger Missing Milton', cmd: 'trigger tupperware', delta: '+35%' },
+      { label: '☕ Trigger Chaya Pipeline', cmd: 'trigger chaya', delta: '+10%' },
+      { label: '🎲 Trigger Random Chaos', cmd: 'trigger random', delta: 'RANDOM' },
+      { label: '📈 Trigger Stress +30%', cmd: 'trigger stress +30', delta: '+30%' },
+      { label: '💥 Trigger 100% BSOD', cmd: 'trigger bsod', delta: '100%' },
+      { label: '📉 Trigger Calm State', cmd: 'trigger calm', delta: '20%' },
+      { label: '👴 Trigger Achan Firewall', cmd: 'trigger achan', delta: 'SHIELD' },
+      { label: '🧺 Trigger Saree Rescue', cmd: 'trigger saree', delta: 'GAME' },
+      { label: '📱 Trigger Kudumbam Chat', cmd: 'trigger kudumbam', delta: 'CHAT' },
     ]
   };
 
@@ -157,6 +172,20 @@ export const TerminalConsole: React.FC<TerminalConsoleProps> = ({
           <span className="hidden md:inline text-slate-500">| VT100 / MANGLISH PROTOCOL</span>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Triggers Action Palette Button */}
+          <button
+            onClick={() => {
+              sounds.playKeyClick();
+              setShowQuickDeck(true);
+              setQuickDeckCategory('triggers');
+            }}
+            className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] bg-amber-950/80 border border-amber-500 text-amber-300 hover:bg-amber-900 cursor-pointer font-bold transition-transform active:scale-95"
+            title="Open Household Chaos & Event Trigger Menu"
+          >
+            <Zap size={11} className="text-amber-400" />
+            <span>⚡ TRIGGERS</span>
+          </button>
+
           {/* Survival Guide Help Button */}
           {onOpenHelp && (
             <button
@@ -323,12 +352,26 @@ export const TerminalConsole: React.FC<TerminalConsoleProps> = ({
               <Sparkles size={11} className="text-amber-400" />
               SUGGESTED ACTIONS FOR THIS MOMENT:
             </span>
-            <button
-              onClick={() => setShowQuickDeck(!showQuickDeck)}
-              className="text-[10px] text-amber-400 hover:text-amber-300 underline cursor-pointer flex items-center gap-0.5"
-            >
-              <span>{showQuickDeck ? 'Hide Action Palette' : '📂 Show All Household Actions'}</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  sounds.playKeyClick();
+                  setShowQuickDeck(true);
+                  setQuickDeckCategory('triggers');
+                }}
+                className="text-[10px] text-amber-300 hover:text-amber-200 bg-amber-950/70 border border-amber-500/60 px-1.5 py-0.5 rounded cursor-pointer flex items-center gap-1 font-bold"
+                title="Open Trigger commands deck"
+              >
+                <Zap size={10} className="text-amber-400" />
+                <span>⚡ Triggers</span>
+              </button>
+              <button
+                onClick={() => setShowQuickDeck(!showQuickDeck)}
+                className="text-[10px] text-amber-400 hover:text-amber-300 underline cursor-pointer flex items-center gap-0.5"
+              >
+                <span>{showQuickDeck ? 'Hide Action Palette' : '📂 Show All Household Actions'}</span>
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5">
@@ -362,7 +405,16 @@ export const TerminalConsole: React.FC<TerminalConsoleProps> = ({
               transition={{ duration: 0.2 }}
               className="bg-slate-950 p-2 rounded border border-slate-800 space-y-2 overflow-hidden"
             >
-              <div className="flex items-center gap-1 border-b border-slate-800 pb-1 text-[11px]">
+              <div className="flex flex-wrap items-center gap-1 border-b border-slate-800 pb-1 text-[11px]">
+                <button
+                  onClick={() => setQuickDeckCategory('triggers')}
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded cursor-pointer transition-colors ${
+                    quickDeckCategory === 'triggers' ? 'bg-amber-900/80 text-amber-200 border border-amber-500 font-bold' : 'text-amber-400/90 hover:text-amber-200'
+                  }`}
+                >
+                  <Zap size={11} className="text-amber-400" />
+                  <span>⚡ Triggers</span>
+                </button>
                 <button
                   onClick={() => setQuickDeckCategory('chaya')}
                   className={`flex items-center gap-1 px-2 py-0.5 rounded cursor-pointer transition-colors ${
@@ -401,7 +453,7 @@ export const TerminalConsole: React.FC<TerminalConsoleProps> = ({
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 max-h-48 overflow-y-auto pr-1">
                 {quickDecks[quickDeckCategory].map((item, idx) => (
                   <button
                     key={idx}
@@ -417,7 +469,7 @@ export const TerminalConsole: React.FC<TerminalConsoleProps> = ({
                     </span>
                     <div className="flex items-center justify-between text-[9px] mt-1 text-slate-400">
                       <span className="font-mono">{item.cmd}</span>
-                      <span className={`px-1 rounded font-bold ${item.delta.includes('100') ? 'bg-red-950 text-red-400' : 'bg-emerald-950 text-emerald-400'}`}>
+                      <span className={`px-1 rounded font-bold ${item.delta.includes('100') || item.delta.includes('+') ? 'bg-amber-950 text-amber-300' : 'bg-emerald-950 text-emerald-400'}`}>
                         {item.delta}
                       </span>
                     </div>
@@ -440,7 +492,7 @@ export const TerminalConsole: React.FC<TerminalConsoleProps> = ({
               value={inputVal}
               onChange={(e) => setInputVal(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Type command here (e.g. thuni --fetch, tea --brew, phone --hide, study --psc)..."
+              placeholder="Type command or trigger (e.g. trigger mazha, trigger kseb, trigger stress +30, tea --brew)..."
               disabled={isProcessing}
               className="w-full bg-black/80 border border-slate-700 text-emerald-300 placeholder-slate-600 px-2.5 py-1.5 text-xs rounded focus:outline-none focus:border-emerald-500 font-mono disabled:opacity-50"
               autoFocus

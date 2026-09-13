@@ -9,7 +9,12 @@ export type DaemonType =
   | 'KSEB_TRIP'
   | 'GUEST_RADAR'
   | 'TUPPERWARE_INTEGRITY'
-  | 'CHAYA_PIPELINE';
+  | 'CHAYA_PIPELINE'
+  | 'COOKER_WHISTLE'
+  | 'MIXIE_GRIND'
+  | 'KUDUMBAM_FORWARD'
+  | 'ACHAN_REMARK'
+  | 'GATE_CREAK';
 
 export interface DaemonInterrupt {
   id: string;

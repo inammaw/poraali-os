@@ -49,6 +49,21 @@ export const HelpGuide: React.FC<HelpGuideProps> = ({ onClose, onExecuteCommand 
         { cmd: 'biscuit --goodday', desc: 'Serve emergency Britannia Good Day to visitors.', stress: '-20%' },
         { cmd: 'bsod', desc: 'Simulate 100% Stress Blue Screen of Death (BSOD).', stress: '100% 💥' },
       ]
+    },
+    {
+      category: '⚡ Household Triggers & Chaos Testing',
+      items: [
+        { cmd: 'trigger list', desc: 'Display full catalog of system daemon triggers in terminal.', stress: 'MANUAL' },
+        { cmd: 'trigger mazha', desc: 'Summon MAZHA.EXE rain clouds & terrace saree laundry emergency.', stress: '+25%' },
+        { cmd: 'trigger kseb', desc: 'Simulate KSEB substation feeder trip & screaming inverter.', stress: '+20%' },
+        { cmd: 'trigger guest', desc: 'Summon Sukumaran Ammavan on Bajaj Chetak via Guest Radar.', stress: '+30%' },
+        { cmd: 'trigger tupperware', desc: 'Trigger missing 2004 Dubai Milton container audit.', stress: '+35%' },
+        { cmd: 'trigger chaya', desc: 'Trigger 4:00 PM evening tea & banana fritter deadline.', stress: '+10%' },
+        { cmd: 'trigger random', desc: 'Summon a pseudorandom chaotic Tharavadu household event.', stress: 'RANDOM' },
+        { cmd: 'trigger stress +30', desc: 'Surge Amma stress by +30% to test analog needle dynamics.', stress: '+30%' },
+        { cmd: 'trigger calm', desc: 'Calibrate Amma stress down to 20% optimal Carnatic state.', stress: '20%' },
+        { cmd: 'trigger bsod', desc: 'Trigger immediate 100% Martyr Mode Blue Screen crash.', stress: '100% 💥' },
+      ]
     }
   ];
 
